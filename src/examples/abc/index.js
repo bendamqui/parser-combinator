@@ -2,6 +2,60 @@ const {many, satisfy, map, sequence, choice} = require('./../../combinators');
 const {char} = require('./../../parsers');
 const {includesIn, matches, isDigit, equalsTo} = require('./../../satisfiers');
 
+const staff = () => {
+    return many(bar());
+}
+
+const bar = () => {
+    return map(sequence(
+        barItems(),
+        barDelimiter()
+    ), ([items, barDelimiter]) => {
+        items.push(barDelimiter);
+        return {
+            type: 'bar',
+            items
+        }        
+    })
+}
+
+const barDelimiter = () => {
+    return choice(repeatBar(), sheetEnd(), barEnd())
+}
+
+const barEnd = () => {
+    return map(satisfy(char(), equalsTo('|')), () => ({type: 'barEnd'}))
+}
+
+const repeatBar = () => {
+    return map(sequence(
+        satisfy(char(), equalsTo(':')),
+        satisfy(char(), equalsTo('|')),
+        satisfy(char(), equalsTo('|'))
+    ), () => ({type: 'repeatBar'}));
+}
+
+const sheetEnd = () => {
+    return map(sequence(        
+        satisfy(char(), equalsTo('|')),
+        satisfy(char(), equalsTo('|'))
+    ), () => ({type: 'sheetEnd'}));
+}
+
+const barItems = () => {
+    return many(choice(note(), chord(), silence()));
+}
+
+const silence = () => {
+    return map(
+        sequence(satisfy(char(), equalsTo('z')),rhythm()),
+        ([silence, rhythm]) => ({rhythm, type: 'silence'})
+    );
+}
+
+const chord = () => {
+    return map(sequence(satisfy(char(), equalsTo('[')),many(note()),satisfy(char(), equalsTo(']'))), ([open, notes, close]) => ({notes, type: 'chord'}))
+}
 const rhythm = () => {    
     return map(choice(fraction(), simpleRhythm()), ([numerator, symbol, denominator]) => ({numerator, denominator}));
 }
@@ -30,13 +84,14 @@ const digit = () => {
     return satisfy(char(), isDigit)
 }
 
-const notes = () => {
-    return map(many(note()), (notes) => ({notes}));
-}
-
 const note = () => {
     return map(
-        sequence(accidentals(), pitch(), rhythm(), octaves()), ([accidentals, pitch, rhythm, octaves]) => ({accidentals, pitch, rhythm, octaves})
+        sequence(
+            accidentals(),
+            pitch(),
+            rhythm(),
+            octaves()
+        ), ([accidentals, pitch, rhythm, octaves]) => ({accidentals, pitch, rhythm, octaves, type: 'note'})
     )
 }
 const accidentals = () => {
@@ -59,6 +114,5 @@ const accidental = () => {
 }
 
 module.exports.parse = (string) => {
-    const parser = notes();
-    return parser(string);
+    return staff()(string);
 }
