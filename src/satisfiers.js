@@ -10,14 +10,19 @@ const matches = (match) => {
     }
 }
 
-includesIn = (list) => {
+const includesIn = (list) => {
     return (term) => {
         return list.includes(term);
     }
 }
 
+const isDigit = (term) => {
+    return matches(/[0-9]/)(term);
+}
+
 module.exports = {
     equalsTo,
     matches,
-    includesIn
+    includesIn,
+    isDigit
 }
