@@ -1,8 +1,8 @@
 {
-  "name": "bdq-parser-combinator",
+  "name": "bm-parser-combinator",
   "version": "1.0.0",
   "description": "Suite of parser combinators",
-  "main": "index.js",
+  "main": "src",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
